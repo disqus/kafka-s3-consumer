@@ -39,7 +39,7 @@ public class S3SinkBase {
 		this.conf = conf;
 		this.topic = topic;
 
-		dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    dateFormat = new SimpleDateFormat(conf.getS3TimePartitionFormat());
 
 		bucket = conf.getS3Bucket();
 		awsClient = new AmazonS3Client(new BasicAWSCredentials(
@@ -55,9 +55,12 @@ public class S3SinkBase {
 
 	private String getKeyPrefix() {
 		Date date = new Date();
-		keyPrefix = conf.getS3Prefix() + "/" + topic + "/"
-				+ dateFormat.format(date) + "/" + topic + "_" + partition + "_";
-		return keyPrefix;
+    return getKeyPrefix(new Date());
+	}
+
+	private String getKeyPrefix(Date date) {
+		return "%s/category=%s/%s/%s".format(conf.getS3Prefix(), topic,
+				dateFormat.format(date), partition);
 	}
 
 	protected void commitChunk(File chunk, long startOffset, long endOffset) {
@@ -69,6 +72,11 @@ public class S3SinkBase {
 		uploads++;
 		obs.incrUploads();
 	}
+
+  protected void commitChunk(File chunk, long startOffset, long endOffset, Date date) {
+    logger.info("Uploading chunk to S3.");
+    String key = "%s-%s-%s-%s".format(getKeyPrefix(date), startOffset, endOffset, UUID.randomUUID());
+  }
 
 	public int getUploads() {
 		return uploads;

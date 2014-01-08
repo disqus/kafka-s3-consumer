@@ -101,8 +101,7 @@ public class App {
 							masterConfig));
 		}
 
-		private static ConsumerConfig createConsumerConfig(String topic,
-				PropertyConfiguration conf) {
+		private static ConsumerConfig createConsumerConfig(String topic, PropertyConfiguration conf) {
 			Properties props = new Properties();
 			String fetchSize;
 

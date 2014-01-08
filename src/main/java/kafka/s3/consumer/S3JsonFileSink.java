@@ -13,15 +13,16 @@ import kafka.message.MessageAndMetadata;
 
 import org.slf4j.LoggerFactory;
 
+
 class S3JsonFileSink extends S3SinkBase implements Sink {
 
-	private static final org.slf4j.Logger logger = LoggerFactory
-			.getLogger(App.class);
+	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(App.class);
 
 	private int s3MaxObjectSize;
+	private int bytesWritten;
 	private long startOffset;
 	private long endOffset;
-	private int bytesWritten;
+
 	ByteBuffer buffer;
 	GZIPOutputStream goutStream;
 
@@ -36,8 +37,7 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 		return new GZIPOutputStream(new FileOutputStream(tmpFile));
 	}
 
-	public S3JsonFileSink(String topic, int partition,
-			PropertyConfiguration conf) throws IOException {
+	public S3JsonFileSink(String topic, int partition, PropertyConfiguration conf) throws IOException {
 		super(topic, partition, conf);
 
 		startOffset = 0;
