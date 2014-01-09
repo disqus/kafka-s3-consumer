@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.zip.GZIPOutputStream;
 
 import kafka.message.Message;
@@ -18,10 +19,11 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 
 	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(App.class);
 
-	private int s3MaxObjectSize;
-	private int bytesWritten;
-	private long startOffset;
-	private long endOffset;
+	private Integer s3MaxObjectSize;
+	private Integer bytesWritten;
+	private Long startOffset;
+	private Long endOffset;
+  private String timePartition;
 
 	ByteBuffer buffer;
 	GZIPOutputStream goutStream;
@@ -40,11 +42,6 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 	public S3JsonFileSink(String topic, int partition, PropertyConfiguration conf) throws IOException {
 		super(topic, partition, conf);
 
-		startOffset = 0;
-		endOffset = 0;
-		bytesWritten = 0;
-		tmpFile = File.createTempFile("s3sink", null);
-		goutStream = getOutputStream(tmpFile);
 		this.topic = topic;
 
 		if (!topicSizes.containsKey(topic)) {
@@ -55,27 +52,50 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 		}
 	}
 
+  public void prepareAndCommitFileStream(Date date) {
+      try {
+        if (goutStream != null) {
+          goutStream.close();
+          commitChunk(tmpFile, startOffset, endOffset, date);
+        }
+        if (tmpFile != null)
+          tmpFile.delete();
+        tmpFile = File.createTempFile("s3sink:{}".format(timePartition), null);
+        if (goutStream != null)
+          goutStream.finish();
+        goutStream = getOutputStream(tmpFile);
+        if (endOffset == null) {
+          startOffset = 0L;
+          endOffset = 0L;
+        } else {
+          startOffset = endOffset;
+        }
+        bytesWritten = 0;
+      } catch (IOException e) {
+        throw new RuntimeException("Error with file streams.");
+      }
+  }
+
 	@Override
-	public long append(MessageAndMetadata<Message> msgAndMetadata)
-			throws IOException {
-		int messageSize = msgAndMetadata.message().payload().remaining();
-		// logger.debug("Appending message with size: " + messageSize);
-
-		if (bytesWritten + messageSize > s3MaxObjectSize) {
-			goutStream.close();
-			commitChunk(tmpFile, startOffset, endOffset);
-			tmpFile.delete();
-			tmpFile = File.createTempFile("s3sink", null);
-			goutStream.finish();
-			goutStream = getOutputStream(tmpFile);
-			startOffset = endOffset;
-			bytesWritten = 0;
-		}
-
+	public long append(MessageAndMetadata<Message> msgAndMetadata) throws IOException {
 		ByteBuffer buffer = msgAndMetadata.message().payload();
+
+    // Grab the timestamp (first 8 bytes)
+    Date date = new Date(buffer.getLong()*1000);
+    String messageTimePartition = getTimePartition(date);
+		int messageSize = msgAndMetadata.message().payload().remaining();
+
+    // Load message into the byte[]
 		byte[] bytes = new byte[buffer.remaining()];
 		buffer.get(bytes);
 
+    if (tmpFile == null
+        || messageTimePartition != timePartition
+        || bytesWritten + messageSize > s3MaxObjectSize) {
+      prepareAndCommitFileStream(date);
+		}
+
+    timePartition = messageTimePartition;
 		goutStream.write(bytes);
 		goutStream.write('\n');
 		bytesWritten += messageSize;

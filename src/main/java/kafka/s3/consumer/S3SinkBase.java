@@ -60,8 +60,12 @@ public class S3SinkBase {
 
 	private String getKeyPrefix(Date date) {
 		return "%s/category=%s/%s/%s".format(conf.getS3Prefix(), topic,
-				dateFormat.format(date), partition);
+				getTimePartition(date), partition);
 	}
+
+  protected String getTimePartition(Date date) {
+    return dateFormat.format(date);
+  }
 
 	protected void commitChunk(File chunk, long startOffset, long endOffset) {
 		logger.info("Uploading chunk to S3.");
