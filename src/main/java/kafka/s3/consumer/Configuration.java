@@ -28,7 +28,7 @@ interface Configuration {
 	public static final String PROP_KAFKA_TOPICS = "kafka.topics";
 
   public static final String PROP_S3_TIME_PARTITION_FORMAT = "s3.time_partition_format";
-  public static final String DEFAULT_S3_TIME_PARTITION_FORMAT = "'dt='YYYY-MM-dd-HH";
+  public static final String DEFAULT_S3_TIME_PARTITION_FORMAT = "'dt='yyyy-MM-dd-HH";
 
   public int getS3MaxObjectSize();
   public int getKafkaMaxMessageSize();
