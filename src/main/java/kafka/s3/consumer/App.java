@@ -34,8 +34,7 @@ public class App {
 	private static ExecutorService pool;
 	private static ScheduledExecutorService scheduler;
 
-	private static Runnable doPoolStatusCheck(
-			final List<ArchivingWorker> workers) {
+	private static Runnable doPoolStatusCheck(final List<ArchivingWorker> workers) {
 		return new Runnable() {
 			public void run() {
 				for (ArchivingWorker worker : workers) {
@@ -61,8 +60,7 @@ public class App {
 
 		for (Map.Entry<String, Integer> entry : topics.entrySet()) {
 			for (int partition = 0; partition < entry.getValue(); partition++) {
-				workers.add(new ArchivingWorker(entry.getKey(), partition,
-						conf, pool));
+				workers.add(new ArchivingWorker(entry.getKey(), partition, conf, pool));
 			}
 		}
 
@@ -140,27 +138,30 @@ public class App {
 				topicCountMap.put(topic, 1);
 
 				consumerMap = consumer.createMessageStreams(topicCountMap);
-				if (consumerMap.containsKey(topic)
-						&& consumerMap.get(topic).size() > 0) {
+
+				if (consumerMap.containsKey(topic) && consumerMap.get(topic).size() > 0) {
+
 					KafkaStream<Message> stream = consumerMap.get(topic).get(0);
 					ConsumerIterator<Message> it = stream.iterator();
-					while (it.hasNext()) {
-						MessageAndMetadata<Message> msgAndMetadata = it.next();
-						totalMessageSize += sink.append(msgAndMetadata);
-						messageCount += 1;
+
+					while (true) {
+            sink.checkFileLease();
+            if (it.hasNext()) {
+              MessageAndMetadata<Message> msgAndMetadata = it.next();
+              totalMessageSize += sink.append(msgAndMetadata);
+              messageCount += 1;
+            } else {
+              Thread.sleep(10);
+            }
 					}
-				} else {
-					logger.warn(
-							"Topic {} not found in ConsumerMap / Kafka stream",
-							topic);
-				}
+
+        }
 			} catch (Exception e) {
 
 				logger.warn(
 						"Critical error in Archiving worker for topic {}. Relaunching thread.",
 						topic, e);
-				pool.execute(new ArchivingWorker(topic, partition,
-						masterConfig, pool));
+				pool.execute(new ArchivingWorker(topic, partition, masterConfig, pool));
 			}
 		}
 
@@ -183,7 +184,6 @@ public class App {
 			} else {
 				logger.warn("Update called before queue connection fully initialized");
 			}
-
 		}
 	}
 

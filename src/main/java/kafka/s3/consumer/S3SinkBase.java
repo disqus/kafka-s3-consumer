@@ -53,33 +53,27 @@ public class S3SinkBase {
 		obs.addObserver(o);
 	}
 
-	private String getKeyPrefix() {
-		Date date = new Date();
-    return getKeyPrefix(new Date());
-	}
-
 	private String getKeyPrefix(Date date) {
-		return "%s/category=%s/%s/%s".format(conf.getS3Prefix(), topic,
-				getTimePartition(date), partition);
+    String prefix = String.format("%s/category=%s/%s/%d", conf.getS3Prefix(),
+        topic, getTimePartition(date), partition);
+    return prefix;
 	}
 
   protected String getTimePartition(Date date) {
     return dateFormat.format(date);
   }
 
-	protected void commitChunk(File chunk, long startOffset, long endOffset) {
-		logger.info("Uploading chunk to S3.");
-		String key = getKeyPrefix() + "_" + System.currentTimeMillis() / 1000
-				+ "_" + startOffset + "_" + endOffset + "_" + UUID.randomUUID()
-				+ ".gz";
+	protected void commitChunk(File chunk, String key) {
+    logger.debug("Uploading to s3 {}", key);
 		awsClient.putObject(bucket, key, chunk);
 		uploads++;
 		obs.incrUploads();
 	}
 
   protected void commitChunk(File chunk, long startOffset, long endOffset, Date date) {
-    logger.info("Uploading chunk to S3.");
-    String key = "%s-%s-%s-%s".format(getKeyPrefix(date), startOffset, endOffset, UUID.randomUUID());
+    String key = String.format("%s:%s:%s:%s.gz", getKeyPrefix(date),
+        startOffset, endOffset, UUID.randomUUID());
+    commitChunk(chunk, key);
   }
 
 	public int getUploads() {
