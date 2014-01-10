@@ -22,7 +22,7 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 
 	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(App.class);
 
-  private final Long fileLease = 30000L;
+  private final Long fileLease = 300000L;  // 5 minutes
 
 	private Integer s3MaxObjectSize;
 	private Integer bytesWritten;
