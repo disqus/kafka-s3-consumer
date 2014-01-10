@@ -14,7 +14,7 @@ deb: JAR_FILE := $(NAME)-$(VERSION).jar
 deb: WORK_DIR := $(shell mktemp -d)
 deb: TARGET_DIR := $(WORK_DIR)/usr/share/java
 deb: clean package
-	# Building deb for $(TARGET)
+	# Building deb for $(JAR_FILE)
 	mkdir -p $(TARGET_DIR)
 	cp target/$(JAR_FILE) $(TARGET_DIR)
 	cd $(TARGET_DIR); ln -s $(JAR_FILE) $(NAME).jar
