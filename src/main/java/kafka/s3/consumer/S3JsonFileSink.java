@@ -1,5 +1,7 @@
 package kafka.s3.consumer;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -77,7 +79,9 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
       try {
         if (goutStream != null) {
           goutStream.close();
-          commitChunk(tmpFile, startOffset, endOffset, date);
+          if (tmpFile != null && bytesWritten != 0) {
+            commitChunk(tmpFile, startOffset, endOffset, date);
+          }
         }
         if (tmpFile != null) {
           tmpFile.delete();

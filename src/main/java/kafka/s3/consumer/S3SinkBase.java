@@ -27,6 +27,7 @@ public class S3SinkBase {
 	private int partition;
 	private DateFormat dateFormat;
 	private String topic;
+	private String prefix;
 	PropertyConfiguration conf;
 
 	protected Map<String, Integer> topicSizes;
@@ -38,6 +39,7 @@ public class S3SinkBase {
 		this.partition = partition;
 		this.conf = conf;
 		this.topic = topic;
+    this.prefix = conf.getString(conf.PROP_KAFKA_TOPIC_PREFIX);
 
     dateFormat = new SimpleDateFormat(conf.getS3TimePartitionFormat());
 
@@ -53,9 +55,17 @@ public class S3SinkBase {
 		obs.addObserver(o);
 	}
 
+  private String getTopicName() {
+    if (prefix != null) {
+      return topic.substring(prefix.length()+1);
+    } else {
+      return topic;
+    }
+  }
+
 	private String getKeyPrefix(Date date) {
     String prefix = String.format("%s/category=%s/%s/%d", conf.getS3Prefix(),
-        topic, getTimePartition(date), partition);
+        getTopicName(), getTimePartition(date), partition);
     return prefix;
 	}
 
