@@ -18,6 +18,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
+import kafka.consumer.ConsumerTimeoutException;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.Message;
@@ -111,6 +112,11 @@ public class App {
 					conf.getString(PropertyConfiguration.ZK_CONNECT_STRING));
 			props.put("groupid",
 					conf.getString(PropertyConfiguration.CONSUMER_GROUP_ID));
+			props.put("consumer.timeout.ms",
+					conf.getString(PropertyConfiguration.CONSUMER_TIMEOUT_MS));
+      logger.debug("Consumer timeout {}", conf.getString(PropertyConfiguration.CONSUMER_TIMEOUT_MS));
+      ConsumerConfig c = new ConsumerConfig(props);
+      logger.debug("Config {}", c);
 			props.put("zk.sessiontimeout.ms",
 					conf.getString(PropertyConfiguration.ZK_SESSION_TIMEOUT));
 			props.put("zk.synctime.ms", conf.getString("zk.synctime.ms"));
@@ -145,14 +151,13 @@ public class App {
 					ConsumerIterator<Message> it = stream.iterator();
 
 					while (true) {
-            sink.checkFileLease();
-            if (it.hasNext()) {
+            try {
               MessageAndMetadata<Message> msgAndMetadata = it.next();
               totalMessageSize += sink.append(msgAndMetadata);
               messageCount += 1;
-            } else {
-              Thread.sleep(10);
+            } catch (ConsumerTimeoutException e) {
             }
+            sink.checkFileLease();
 					}
 
         }
