@@ -57,7 +57,7 @@ public class S3SinkBase {
 
   private String getTopicName() {
     if (prefix != null) {
-      return topic.substring(prefix.length()+1);
+      return topic.substring(prefix.length());
     } else {
       return topic;
     }
