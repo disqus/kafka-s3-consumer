@@ -12,6 +12,5 @@
 
   <root level="${logging-level:-DEBUG}">
     <appender-ref ref="STDERR" />
-    <appender-ref ref="RAVEN" />
   </root>
 </configuration>
