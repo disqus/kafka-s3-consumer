@@ -10,35 +10,6 @@
     </encoder>
   </appender>
 
-  <appender name="FILE"
-    class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>logs/kafka_s3_archiver.log</file>
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>logs/kafka_s3_archiver-%d{yyyy-MM-dd}.%i.gz
-      </fileNamePattern>
-      <maxHistory>2</maxHistory>
-      <timeBasedFileNamingAndTriggeringPolicy
-        class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-        <maxFileSize>50MB</maxFileSize>
-      </timeBasedFileNamingAndTriggeringPolicy>
-    </rollingPolicy>
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}- %msg%n</pattern>
-    </encoder>
-  </appender>
-
-  <appender name="RAVEN" class="com.qubit.raven.RavenLogbackAppender">
-    <sentryDsn>http://FOOBAR.com</sentryDsn>
-    <encoder>
-      <pattern>%-5level - %msg</pattern>
-    </encoder>
-    <filter class="ch.qos.logback.classic.filter.LevelFilter">
-      <level>WARN</level>
-      <onMatch>ACCEPT</onMatch>
-      <onMismatch>DENY</onMismatch>
-    </filter>
-  </appender>
-
   <root level="${logging-level:-DEBUG}">
     <appender-ref ref="STDERR" />
     <appender-ref ref="RAVEN" />

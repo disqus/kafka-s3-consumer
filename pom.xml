@@ -4,7 +4,7 @@
 
 	<groupId>kafka-s3-consumer</groupId>
 	<artifactId>kafka-s3-consumer</artifactId>
-	<version>1.0-wip1</version>
+	<version>1.0-wip2</version>
 	<packaging>jar</packaging>
 
 	<name>kafka-s3-consumer</name>
