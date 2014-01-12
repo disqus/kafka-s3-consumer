@@ -13,7 +13,7 @@ interface Sink {
 			throws IOException;
 	public void addObserver(Observer o);
 	public void checkFileLease();
-	public long getCommitCount();
+	public int getUploads();
 }
 
 // vim: noet:ts=2:sw=2

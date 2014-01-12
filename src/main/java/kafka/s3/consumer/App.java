@@ -145,7 +145,7 @@ public class App {
 			logger.warn("RUN'ning offload thread");
 			Sink sink;
 			long lastMessageCount = 0;
-			long lastCommitCount = 0;
+			long lastUploadsCount = 0;
 			long lastStatsdCall = System.currentTimeMillis();
 
 			try {
@@ -172,7 +172,7 @@ public class App {
 
 						if (System.currentTimeMillis() - lastStatsdCall > 1000) {
 							long messageCountDelta = messageCount - lastMessageCount;
-							long commitCountDelta = sink.getCommitCount() - lastCommitCount;
+							long uploadsCountDelta = sink.getUploads() - lastUploadsCount;
 							lastStatsdCall = System.currentTimeMillis();
 
 							if (messageCountDelta > 0) {
@@ -180,9 +180,9 @@ public class App {
 								statsd.count("append", (int) messageCountDelta);
 							}
 
-							if (commitCountDelta > 0) {
-								lastCommitCount = sink.getCommitCount();
-								statsd.count("commits", (int) commitCountDelta);
+							if (uploadsCountDelta > 0) {
+								lastUploadsCount = sink.getUploads();
+								statsd.count("uploads", (int) uploadsCountDelta);
 							}
 						}
 					}
