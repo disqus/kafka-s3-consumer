@@ -33,7 +33,13 @@ interface Configuration {
 
   public static final String PROP_KAFKA_TOPIC_PREFIX = "kafka.topic.prefix";
 
+	public static final String STATSD_PREFIX = "statsd.prefix";
+	public static final String STATSD_HOST = "statsd.host";
+	public static final String STATSD_PORT = "statsd.port";
+
   public int getS3MaxObjectSize();
   public int getKafkaMaxMessageSize();
 
 }
+
+// vim: noet:ts=2:sw=2

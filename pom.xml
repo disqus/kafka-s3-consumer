@@ -4,7 +4,7 @@
 
 	<groupId>kafka-s3-consumer</groupId>
 	<artifactId>kafka-s3-consumer</artifactId>
-	<version>1.0-wip2</version>
+	<version>1.0-wip4</version>
 	<packaging>jar</packaging>
 
 	<name>kafka-s3-consumer</name>
@@ -96,6 +96,12 @@
 				</exclusion>
 			</exclusions>
       -->
+		</dependency>
+
+		<dependency>
+			<groupId>com.timgroup</groupId>
+			<artifactId>java-statsd-client</artifactId>
+			<version>2.0.0</version>
 		</dependency>
 
 	</dependencies>

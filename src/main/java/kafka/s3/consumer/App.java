@@ -24,6 +24,7 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.Message;
 import kafka.message.MessageAndMetadata;
 
+import com.timgroup.statsd.NonBlockingStatsDClient;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,7 @@ public class App {
 	private static PropertyConfiguration conf;
 	private static ExecutorService pool;
 	private static ScheduledExecutorService scheduler;
+	private static NonBlockingStatsDClient statsd;
 
 	private static Runnable doPoolStatusCheck(final List<ArchivingWorker> workers) {
 		return new Runnable() {
@@ -48,6 +50,11 @@ public class App {
 
 	public static void main(String[] args) {
 		conf = loadConfiguration(args);
+
+		statsd = new NonBlockingStatsDClient(
+				conf.getString(PropertyConfiguration.STATSD_PREFIX),
+				conf.getString(PropertyConfiguration.STATSD_HOST),
+				conf.getInt(PropertyConfiguration.STATSD_PORT));
 
 		Map<String, Integer> topics = conf.getTopicsAndPartitions();
 		final List<ArchivingWorker> workers = new LinkedList<ArchivingWorker>();
@@ -137,6 +144,10 @@ public class App {
 		public void run() {
 			logger.warn("RUN'ning offload thread");
 			Sink sink;
+			long lastMessageCount = 0;
+			long lastCommitCount = 0;
+			long lastStatsdCall = System.currentTimeMillis();
+
 			try {
 				sink = new S3JsonFileSink(topic, partition, conf);
 				sink.addObserver(this);
@@ -155,9 +166,25 @@ public class App {
               MessageAndMetadata<Message> msgAndMetadata = it.next();
               totalMessageSize += sink.append(msgAndMetadata);
               messageCount += 1;
-            } catch (ConsumerTimeoutException e) {
-            }
+            } catch (ConsumerTimeoutException e) {}
+
             sink.checkFileLease();
+
+						if (System.currentTimeMillis() - lastStatsdCall > 1000) {
+							long messageCountDelta = messageCount - lastMessageCount;
+							long commitCountDelta = sink.getCommitCount() - lastCommitCount;
+							lastStatsdCall = System.currentTimeMillis();
+
+							if (messageCountDelta > 0) {
+								lastMessageCount = messageCount;
+								statsd.count("append", (int) messageCountDelta);
+							}
+
+							if (commitCountDelta > 0) {
+								lastCommitCount = sink.getCommitCount();
+								statsd.count("commits", (int) commitCountDelta);
+							}
+						}
 					}
 
         }
@@ -213,3 +240,5 @@ public class App {
 		}
 	}
 }
+
+// vim: noet:ts=2:sw=2

@@ -35,6 +35,10 @@ public class PropertyConfiguration implements Configuration {
     return config.getString(s, d);
   }
 
+	public int getInt(String s) {
+		return config.getInt(s);
+	}
+
 	private Map<String, Integer> getConfigMap(String prop) {
 		HashMap<String, Integer> result = new HashMap<String, Integer>();
 		String[] fields = config.getStringArray(prop);
@@ -102,3 +106,5 @@ public class PropertyConfiguration implements Configuration {
   }
 
 }
+
+// vim: noet:ts=2:sw=2

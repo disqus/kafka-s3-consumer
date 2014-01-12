@@ -32,6 +32,7 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 	private Long endOffset;
   private Date partitionDate;
   private Long timestamp;
+	private long commitCount;
 
 	ByteBuffer buffer;
 	GZIPOutputStream goutStream;
@@ -81,6 +82,7 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
           goutStream.close();
           if (tmpFile != null && bytesWritten != 0) {
             commitChunk(tmpFile, startOffset, endOffset, date);
+						commitCount++;
           }
         }
         if (tmpFile != null) {
@@ -126,4 +128,9 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 		return messageSize;
 	}
 
+	public long getCommitCount() {
+		return commitCount;
+	}
 }
+
+// vim: noet:ts=2:sw=2

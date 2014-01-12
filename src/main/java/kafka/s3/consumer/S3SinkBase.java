@@ -91,3 +91,5 @@ public class S3SinkBase {
 	}
 
 }
+
+// vim: noet:ts=2:sw=2
