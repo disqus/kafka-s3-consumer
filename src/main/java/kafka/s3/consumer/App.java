@@ -149,7 +149,7 @@ public class App {
 			long lastStatsdCall = System.currentTimeMillis();
 
 			try {
-				sink = new S3JsonFileSink(topic, partition, conf);
+				sink = new MultiS3JsonFileSink(topic, partition, conf);
 				sink.addObserver(this);
 				Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
 				topicCountMap.put(topic, 1);

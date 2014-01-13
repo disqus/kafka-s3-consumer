@@ -90,6 +90,9 @@ public class S3SinkBase {
 		return uploads;
 	}
 
+	public void close() {
+		obs.deleteObservers();
+	}
 }
 
 // vim: noet:ts=2:sw=2

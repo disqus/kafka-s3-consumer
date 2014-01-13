@@ -1,14 +1,10 @@
 package kafka.s3.consumer;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.zip.GZIPOutputStream;
 
@@ -17,7 +13,6 @@ import kafka.message.Message;
 import kafka.message.MessageAndMetadata;
 
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang.time.DateUtils;
 
 
 class S3JsonFileSink extends S3SinkBase implements Sink {
@@ -32,13 +27,11 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 	private Long endOffset;
   private Date partitionDate;
   private Long timestamp;
+	private Integer emptyCommits;
 
-	ByteBuffer buffer;
 	GZIPOutputStream goutStream;
 
 	File tmpFile;
-	OutputStream tmpOutputStream;
-	OutputStream writer;
 	String topic;
 
 	private GZIPOutputStream getOutputStream(File tmpFile)
@@ -47,15 +40,17 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 		return new GZIPOutputStream(new FileOutputStream(tmpFile));
 	}
 
-	public S3JsonFileSink(String topic, int partition, PropertyConfiguration conf) throws IOException {
+	public S3JsonFileSink(String topic, int partition, PropertyConfiguration conf, Date partitionDate) throws IOException {
 		super(topic, partition, conf);
 
     timestamp = System.currentTimeMillis();
 
 		this.topic = topic;
+		this.partitionDate = partitionDate;
     startOffset = 0L;
     endOffset = 0L;
     bytesWritten = 0;
+		emptyCommits = 0;
 
 		if (!topicSizes.containsKey(topic)) {
 			logger.warn("No topic specific size found for topic: " + topic);
@@ -63,16 +58,22 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 		} else {
 			s3MaxObjectSize = topicSizes.get(topic);
 		}
+
+		prepareAndCommitFileStream(partitionDate);
 	}
 
   public void checkFileLease() {
     Long now = System.currentTimeMillis();
-    if (partitionDate != null && now - timestamp > fileLease) {
+    if (now - timestamp > fileLease) {
       logger.debug("File lease expired for {}", partitionDate);
       prepareAndCommitFileStream(partitionDate);
       timestamp = now;
     }
   }
+
+	public boolean isStale() {
+		return emptyCommits >= 3;
+	}
 
   private void prepareAndCommitFileStream(Date date) {
     logger.debug("Preparing file stream for partition {}", date);
@@ -81,7 +82,10 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
           goutStream.close();
           if (tmpFile != null && bytesWritten != 0) {
             commitChunk(tmpFile, startOffset, endOffset, date);
-          }
+						emptyCommits = 0;
+          } else {
+						emptyCommits++;
+					}
         }
         if (tmpFile != null) {
           tmpFile.delete();
@@ -102,28 +106,31 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 	public long append(MessageAndMetadata<Message> msgAndMetadata) throws IOException {
 		ByteBuffer buffer = msgAndMetadata.message().payload();
 
-    // Grab the timestamp (first 8 bytes)
-    Date messagePartitionDate = DateUtils.truncate(new Date(buffer.getLong()*1000), Calendar.HOUR);
+		// HACK: need to re-read the first 8 bytes again.
+		buffer.getLong();
 		int messageSize = msgAndMetadata.message().payload().remaining();
 
     // Load message into the byte[]
 		byte[] bytes = new byte[buffer.remaining()];
 		buffer.get(bytes);
 
-    if (partitionDate == null
-        || !partitionDate.equals(messagePartitionDate)
-        || bytesWritten + messageSize > s3MaxObjectSize) {
-      if (partitionDate == null)
-        partitionDate = messagePartitionDate;
-      prepareAndCommitFileStream(partitionDate);
+		if (bytesWritten + messageSize > s3MaxObjectSize) {
+			prepareAndCommitFileStream(partitionDate);
 		}
 
-    partitionDate = messagePartitionDate;
 		goutStream.write(bytes);
 		goutStream.write('\n');
 		bytesWritten += messageSize;
 		endOffset++;
 		return messageSize;
+	}
+
+	public void close() {
+		if (tmpFile != null) {
+			tmpFile.delete();
+		}
+
+		super.close();
 	}
 }
 
