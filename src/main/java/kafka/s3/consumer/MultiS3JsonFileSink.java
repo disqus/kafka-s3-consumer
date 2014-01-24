@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 class MultiS3JsonFileSink implements Sink, Observer {
 	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(App.class);
 
-	private Map<Date, S3JsonFileSink> fileSinkPartitions;
+	private Map<PartitionKey, S3JsonFileSink> fileSinkPartitions;
 	private String topic;
 	private int partition;
 	private int uploads;
@@ -31,26 +31,25 @@ class MultiS3JsonFileSink implements Sink, Observer {
 		this.partition = partition;
 		this.conf = conf;
 
-		this.fileSinkPartitions = new HashMap<Date, S3JsonFileSink>();
+		this.fileSinkPartitions = new HashMap<PartitionKey, S3JsonFileSink>();
 	}
 
-	public long append(MessageAndMetadata<Message> msgAndMetadata) throws IOException {
-		ByteBuffer buffer = msgAndMetadata.message().payload();
+	public long append(S3ConsumerProtos.Message message) throws IOException {
+		Date messagePartitionDate = DateUtils.truncate(new Date(message.getTimestamp() * 1000), Calendar.HOUR);
 
-		// Grab the timestamp (first 8 bytes)
-		Date messagePartitionDate = DateUtils.truncate(new Date(buffer.getLong() * 1000), Calendar.HOUR);
+		PartitionKey partKey = new PartitionKey(messagePartitionDate, message.getPartition());
 
-		S3JsonFileSink sink = fileSinkPartitions.get(messagePartitionDate);
+		S3JsonFileSink sink = fileSinkPartitions.get(partKey);
 
 		if (sink == null) {
-			logger.info("Creating new S3JsonFileSync for partition: {}", messagePartitionDate);
-			sink = new S3JsonFileSink(topic, partition, conf, messagePartitionDate);
+			logger.info("Creating new S3JsonFileSync for partition: {}", partKey);
+			sink = new S3JsonFileSink(topic, partition, conf, partKey);
 			sink.addObserver(obs);
 			sink.addObserver(this);
-			fileSinkPartitions.put(messagePartitionDate, sink);
+			fileSinkPartitions.put(partKey, sink);
 		}
 
-		return sink.append(msgAndMetadata);
+		return sink.append(message);
 	}
 
 	public void addObserver(Observer o) {
@@ -58,9 +57,9 @@ class MultiS3JsonFileSink implements Sink, Observer {
 	}
 
 	public void checkFileLease() {
-		ArrayList<Date> toRemove = new ArrayList<Date>();
+		ArrayList<PartitionKey> toRemove = new ArrayList<PartitionKey>();
 
-		for (Map.Entry<Date, S3JsonFileSink> entry : fileSinkPartitions.entrySet()) {
+		for (Map.Entry<PartitionKey, S3JsonFileSink> entry : fileSinkPartitions.entrySet()) {
 			S3JsonFileSink sink = entry.getValue();
 			sink.checkFileLease();
 			if (sink.isStale()) {
@@ -69,9 +68,9 @@ class MultiS3JsonFileSink implements Sink, Observer {
 			}
 		}
 
-		for (Date d : toRemove) {
-			logger.debug("Removing stale partition: {}", d);
-			fileSinkPartitions.remove(d);
+		for (PartitionKey key : toRemove) {
+			logger.debug("Removing stale partition: {}", key);
+			fileSinkPartitions.remove(key);
 		}
 	}
 

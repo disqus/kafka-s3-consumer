@@ -4,12 +4,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Observer;
 
-import kafka.message.Message;
-import kafka.message.MessageAndMetadata;
-
 interface Sink {
 
-	public long append(MessageAndMetadata<Message> messageAndOffset)
+	public long append(S3ConsumerProtos.Message message)
 			throws IOException;
 	public void addObserver(Observer o);
 	public void checkFileLease();

@@ -1,12 +1,9 @@
 package kafka.s3.consumer;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Observer;
-import java.util.UUID;
 
 import kafka.s3.UploadObserver;
 
@@ -24,10 +21,9 @@ public class S3SinkBase {
 	private String keyPrefix;
 	private int uploads;
 	private UploadObserver obs;
-	private int partition;
-	private DateFormat dateFormat;
-	private String topic;
-	private String prefix;
+	protected int partition;
+	protected String topic;
+	protected String prefix;
 	PropertyConfiguration conf;
 
 	protected Map<String, Integer> topicSizes;
@@ -41,8 +37,6 @@ public class S3SinkBase {
 		this.topic = topic;
     this.prefix = conf.getString(conf.PROP_KAFKA_TOPIC_PREFIX);
 
-    dateFormat = new SimpleDateFormat(conf.getS3TimePartitionFormat());
-
 		bucket = conf.getS3Bucket();
 		awsClient = new AmazonS3Client(new BasicAWSCredentials(
 				conf.getS3AccessKey(), conf.getS3SecretKey()));
@@ -55,36 +49,12 @@ public class S3SinkBase {
 		obs.addObserver(o);
 	}
 
-  private String getTopicName() {
-    if (prefix != null) {
-      return topic.substring(prefix.length());
-    } else {
-      return topic;
-    }
-  }
-
-	private String getKeyPrefix(Date date) {
-    String prefix = String.format("%s/category=%s/%s/%d", conf.getS3Prefix(),
-        getTopicName(), getTimePartition(date), partition);
-    return prefix;
-	}
-
-  protected String getTimePartition(Date date) {
-    return dateFormat.format(date);
-  }
-
 	protected void commitChunk(File chunk, String key) {
     logger.debug("Uploading to s3 {}", key);
 		awsClient.putObject(bucket, key, chunk);
 		uploads++;
 		obs.incrUploads();
 	}
-
-  protected void commitChunk(File chunk, long startOffset, long endOffset, Date date) {
-    String key = String.format("%s:%s:%s:%s.gz", getKeyPrefix(date),
-        startOffset, endOffset, UUID.randomUUID());
-    commitChunk(chunk, key);
-  }
 
 	public int getUploads() {
 		return uploads;

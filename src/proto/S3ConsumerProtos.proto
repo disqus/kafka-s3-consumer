@@ -1,0 +1,7 @@
+package kafka.s3.consumer;
+
+message Message {
+  required int64 timestamp = 1;
+  optional string partition = 2;
+  required string data = 3;
+}

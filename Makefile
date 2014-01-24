@@ -9,6 +9,9 @@ clean:
 	rm -rf *.deb
 	mvn clean
 
+protobuf:
+	protoc -I=src/proto/ --java_out=src/main/java/ src/proto/S3ConsumerProtos.proto
+
 deb: VERSION := $(shell mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | grep -Ev '(^\[|Download\w+:)')
 deb: JAR_FILE := $(NAME)-$(VERSION).jar
 deb: WORK_DIR := $(shell mktemp -d)

@@ -4,6 +4,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -162,13 +163,17 @@ public class App {
 					ConsumerIterator<Message> it = stream.iterator();
 
 					while (true) {
-            try {
-              MessageAndMetadata<Message> msgAndMetadata = it.next();
-              totalMessageSize += sink.append(msgAndMetadata);
-              messageCount += 1;
-            } catch (ConsumerTimeoutException e) {}
+						try {
+							MessageAndMetadata<Message> msgAndMetadata = it.next();
+							ByteBuffer buffer = msgAndMetadata.message().payload();
+							byte[] bytes = new byte[buffer.remaining()];
+							buffer.get(bytes);
+							S3ConsumerProtos.Message message = S3ConsumerProtos.Message.parseFrom(bytes);
+							totalMessageSize += sink.append(message);
+							messageCount += 1;
+						} catch (ConsumerTimeoutException e) {}
 
-            sink.checkFileLease();
+						sink.checkFileLease();
 
 						if (System.currentTimeMillis() - lastStatsdCall > 1000) {
 							long messageCountDelta = messageCount - lastMessageCount;
@@ -186,8 +191,7 @@ public class App {
 							}
 						}
 					}
-
-        }
+				}
 			} catch (Exception e) {
 
 				logger.warn(

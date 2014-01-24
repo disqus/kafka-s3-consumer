@@ -5,9 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
-
 
 import kafka.message.Message;
 import kafka.message.MessageAndMetadata;
@@ -25,9 +27,10 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 	private Integer bytesWritten;
 	private Long startOffset;
 	private Long endOffset;
-  private Date partitionDate;
+	private PartitionKey partitionKey;
   private Long timestamp;
 	private Integer emptyCommits;
+	private DateFormat dateFormat;
 
 	GZIPOutputStream goutStream;
 
@@ -40,17 +43,19 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 		return new GZIPOutputStream(new FileOutputStream(tmpFile));
 	}
 
-	public S3JsonFileSink(String topic, int partition, PropertyConfiguration conf, Date partitionDate) throws IOException {
+	public S3JsonFileSink(String topic, int partition, PropertyConfiguration conf, PartitionKey partitionKey) throws IOException {
 		super(topic, partition, conf);
 
     timestamp = System.currentTimeMillis();
 
 		this.topic = topic;
-		this.partitionDate = partitionDate;
+		this.partitionKey = partitionKey;
     startOffset = 0L;
     endOffset = 0L;
     bytesWritten = 0;
 		emptyCommits = 0;
+
+		dateFormat = new SimpleDateFormat(conf.getS3TimePartitionFormat());
 
 		if (!topicSizes.containsKey(topic)) {
 			logger.warn("No topic specific size found for topic: " + topic);
@@ -59,14 +64,14 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 			s3MaxObjectSize = topicSizes.get(topic);
 		}
 
-		prepareAndCommitFileStream(partitionDate);
+		prepareAndCommitFileStream();
 	}
 
   public void checkFileLease() {
     Long now = System.currentTimeMillis();
     if (now - timestamp > fileLease) {
-      logger.debug("File lease expired for {}", partitionDate);
-      prepareAndCommitFileStream(partitionDate);
+      logger.debug("File lease expired for {}", partitionKey);
+      prepareAndCommitFileStream();
       timestamp = now;
     }
   }
@@ -75,13 +80,46 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 		return emptyCommits >= 3;
 	}
 
-  private void prepareAndCommitFileStream(Date date) {
-    logger.debug("Preparing file stream for partition {}", date);
+
+	// TODO: fix this.
+	private String getTopicName() {
+		if (prefix != null) {
+			return topic.substring(prefix.length());
+		} else {
+			return topic;
+		}
+	}
+
+	private String getTimePartition() {
+		return dateFormat.format(partitionKey.getDate());
+	}
+
+	private String getKey() {
+		String path = String.format("%s/category=%s/%s", conf.getS3Prefix(),
+				getTopicName(), getTimePartition());
+
+		String extraPartition = partitionKey.getExtraPath();
+		if (!extraPartition.isEmpty()) {
+			extraPartition += "/";
+		}
+
+		String filename = String.format("%d:%d:%d:%s.gz", partition,
+				startOffset, endOffset, UUID.randomUUID());
+
+		String key = path + "/" + extraPartition + filename;
+		System.out.println("key: " + key);
+
+		return key;
+	}
+
+  private void prepareAndCommitFileStream() {
+    logger.debug("Preparing file stream for partition {}", partitionKey);
+    System.out.println("Preparing file stream for partition " + partitionKey);
       try {
         if (goutStream != null) {
           goutStream.close();
           if (tmpFile != null && bytesWritten != 0) {
-            commitChunk(tmpFile, startOffset, endOffset, date);
+            commitChunk(tmpFile, getKey());
 						emptyCommits = 0;
           } else {
 						emptyCommits++;
@@ -90,7 +128,11 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
         if (tmpFile != null) {
           tmpFile.delete();
         }
-        tmpFile = File.createTempFile("s3sink:%s".format(getTimePartition(date)), null);
+				// TODO: This isn't doing what is expected... doesn't really matter
+				// but should get rid of it if it doesn't work.
+        tmpFile = File.createTempFile(
+            "%s_%s_%s".format(getTopicName(), getTimePartition(), partitionKey.getExtraPath().replace('/', '_')),
+            null);
         if (goutStream != null) {
           goutStream.finish();
         }
@@ -103,19 +145,12 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
   }
 
 	@Override
-	public long append(MessageAndMetadata<Message> msgAndMetadata) throws IOException {
-		ByteBuffer buffer = msgAndMetadata.message().payload();
-
-		// HACK: need to re-read the first 8 bytes again.
-		buffer.getLong();
-		int messageSize = msgAndMetadata.message().payload().remaining();
-
-    // Load message into the byte[]
-		byte[] bytes = new byte[buffer.remaining()];
-		buffer.get(bytes);
+	public long append(S3ConsumerProtos.Message message) throws IOException {
+		byte[] bytes = message.getData().getBytes();
+		int messageSize = bytes.length;
 
 		if (bytesWritten + messageSize > s3MaxObjectSize) {
-			prepareAndCommitFileStream(partitionDate);
+			prepareAndCommitFileStream();
 		}
 
 		goutStream.write(bytes);
