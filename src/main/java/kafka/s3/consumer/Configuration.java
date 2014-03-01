@@ -1,7 +1,5 @@
 package kafka.s3.consumer;
 
-import java.util.Map;
-
 
 interface Configuration {
 
@@ -27,11 +25,6 @@ interface Configuration {
 
 	public static final String PROP_KAFKA_MAX_MESSAGE_SIZE = "kafka.maxmessagesize";
 	public static final String PROP_KAFKA_TOPICS = "kafka.topics";
-
-  public static final String PROP_S3_TIME_PARTITION_FORMAT = "s3.time_partition_format";
-  public static final String DEFAULT_S3_TIME_PARTITION_FORMAT = "'dt='yyyy-MM-dd-HH";
-
-  public static final String PROP_KAFKA_TOPIC_PREFIX = "kafka.topic.prefix";
 
 	public static final String STATSD_PREFIX = "statsd.prefix";
 	public static final String STATSD_HOST = "statsd.host";

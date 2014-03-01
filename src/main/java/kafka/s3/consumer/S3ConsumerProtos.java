@@ -11,48 +11,43 @@ public final class S3ConsumerProtos {
   public interface MessageOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // required int64 timestamp = 1;
+    // required string path = 1;
     /**
-     * <code>required int64 timestamp = 1;</code>
+     * <code>required string path = 1;</code>
      */
-    boolean hasTimestamp();
+    boolean hasPath();
     /**
-     * <code>required int64 timestamp = 1;</code>
+     * <code>required string path = 1;</code>
      */
-    long getTimestamp();
-
-    // optional string partition = 2;
+    java.lang.String getPath();
     /**
-     * <code>optional string partition = 2;</code>
-     */
-    boolean hasPartition();
-    /**
-     * <code>optional string partition = 2;</code>
-     */
-    java.lang.String getPartition();
-    /**
-     * <code>optional string partition = 2;</code>
+     * <code>required string path = 1;</code>
      */
     com.google.protobuf.ByteString
-        getPartitionBytes();
+        getPathBytes();
 
-    // required string data = 3;
+    // required string data = 2;
     /**
-     * <code>required string data = 3;</code>
+     * <code>required string data = 2;</code>
      */
     boolean hasData();
     /**
-     * <code>required string data = 3;</code>
+     * <code>required string data = 2;</code>
      */
     java.lang.String getData();
     /**
-     * <code>required string data = 3;</code>
+     * <code>required string data = 2;</code>
      */
     com.google.protobuf.ByteString
         getDataBytes();
   }
   /**
    * Protobuf type {@code kafka.s3.consumer.Message}
+   *
+   * <pre>
+   * required int64 timestamp = 1;
+   * optional string partition = 2;
+   * </pre>
    */
   public static final class Message extends
       com.google.protobuf.GeneratedMessage
@@ -102,18 +97,13 @@ public final class S3ConsumerProtos {
               }
               break;
             }
-            case 8: {
+            case 10: {
               bitField0_ |= 0x00000001;
-              timestamp_ = input.readInt64();
+              path_ = input.readBytes();
               break;
             }
             case 18: {
               bitField0_ |= 0x00000002;
-              partition_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
               data_ = input.readBytes();
               break;
             }
@@ -157,36 +147,20 @@ public final class S3ConsumerProtos {
     }
 
     private int bitField0_;
-    // required int64 timestamp = 1;
-    public static final int TIMESTAMP_FIELD_NUMBER = 1;
-    private long timestamp_;
+    // required string path = 1;
+    public static final int PATH_FIELD_NUMBER = 1;
+    private java.lang.Object path_;
     /**
-     * <code>required int64 timestamp = 1;</code>
+     * <code>required string path = 1;</code>
      */
-    public boolean hasTimestamp() {
+    public boolean hasPath() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>required int64 timestamp = 1;</code>
+     * <code>required string path = 1;</code>
      */
-    public long getTimestamp() {
-      return timestamp_;
-    }
-
-    // optional string partition = 2;
-    public static final int PARTITION_FIELD_NUMBER = 2;
-    private java.lang.Object partition_;
-    /**
-     * <code>optional string partition = 2;</code>
-     */
-    public boolean hasPartition() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional string partition = 2;</code>
-     */
-    public java.lang.String getPartition() {
-      java.lang.Object ref = partition_;
+    public java.lang.String getPath() {
+      java.lang.Object ref = path_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
@@ -194,39 +168,39 @@ public final class S3ConsumerProtos {
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          partition_ = s;
+          path_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>optional string partition = 2;</code>
+     * <code>required string path = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getPartitionBytes() {
-      java.lang.Object ref = partition_;
+        getPathBytes() {
+      java.lang.Object ref = path_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        partition_ = b;
+        path_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
 
-    // required string data = 3;
-    public static final int DATA_FIELD_NUMBER = 3;
+    // required string data = 2;
+    public static final int DATA_FIELD_NUMBER = 2;
     private java.lang.Object data_;
     /**
-     * <code>required string data = 3;</code>
+     * <code>required string data = 2;</code>
      */
     public boolean hasData() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>required string data = 3;</code>
+     * <code>required string data = 2;</code>
      */
     public java.lang.String getData() {
       java.lang.Object ref = data_;
@@ -243,7 +217,7 @@ public final class S3ConsumerProtos {
       }
     }
     /**
-     * <code>required string data = 3;</code>
+     * <code>required string data = 2;</code>
      */
     public com.google.protobuf.ByteString
         getDataBytes() {
@@ -260,8 +234,7 @@ public final class S3ConsumerProtos {
     }
 
     private void initFields() {
-      timestamp_ = 0L;
-      partition_ = "";
+      path_ = "";
       data_ = "";
     }
     private byte memoizedIsInitialized = -1;
@@ -269,7 +242,7 @@ public final class S3ConsumerProtos {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized != -1) return isInitialized == 1;
 
-      if (!hasTimestamp()) {
+      if (!hasPath()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -285,13 +258,10 @@ public final class S3ConsumerProtos {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeInt64(1, timestamp_);
+        output.writeBytes(1, getPathBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getPartitionBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getDataBytes());
+        output.writeBytes(2, getDataBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -304,15 +274,11 @@ public final class S3ConsumerProtos {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, timestamp_);
+          .computeBytesSize(1, getPathBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getPartitionBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getDataBytes());
+          .computeBytesSize(2, getDataBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -394,6 +360,11 @@ public final class S3ConsumerProtos {
     }
     /**
      * Protobuf type {@code kafka.s3.consumer.Message}
+     *
+     * <pre>
+     * required int64 timestamp = 1;
+     * optional string partition = 2;
+     * </pre>
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
@@ -430,12 +401,10 @@ public final class S3ConsumerProtos {
 
       public Builder clear() {
         super.clear();
-        timestamp_ = 0L;
+        path_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
-        partition_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
         data_ = "";
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -467,13 +436,9 @@ public final class S3ConsumerProtos {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        result.timestamp_ = timestamp_;
+        result.path_ = path_;
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
-        }
-        result.partition_ = partition_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
         }
         result.data_ = data_;
         result.bitField0_ = to_bitField0_;
@@ -492,16 +457,13 @@ public final class S3ConsumerProtos {
 
       public Builder mergeFrom(kafka.s3.consumer.S3ConsumerProtos.Message other) {
         if (other == kafka.s3.consumer.S3ConsumerProtos.Message.getDefaultInstance()) return this;
-        if (other.hasTimestamp()) {
-          setTimestamp(other.getTimestamp());
-        }
-        if (other.hasPartition()) {
-          bitField0_ |= 0x00000002;
-          partition_ = other.partition_;
+        if (other.hasPath()) {
+          bitField0_ |= 0x00000001;
+          path_ = other.path_;
           onChanged();
         }
         if (other.hasData()) {
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000002;
           data_ = other.data_;
           onChanged();
         }
@@ -510,7 +472,7 @@ public final class S3ConsumerProtos {
       }
 
       public final boolean isInitialized() {
-        if (!hasTimestamp()) {
+        if (!hasPath()) {
           
           return false;
         }
@@ -540,123 +502,90 @@ public final class S3ConsumerProtos {
       }
       private int bitField0_;
 
-      // required int64 timestamp = 1;
-      private long timestamp_ ;
+      // required string path = 1;
+      private java.lang.Object path_ = "";
       /**
-       * <code>required int64 timestamp = 1;</code>
+       * <code>required string path = 1;</code>
        */
-      public boolean hasTimestamp() {
+      public boolean hasPath() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>required int64 timestamp = 1;</code>
+       * <code>required string path = 1;</code>
        */
-      public long getTimestamp() {
-        return timestamp_;
-      }
-      /**
-       * <code>required int64 timestamp = 1;</code>
-       */
-      public Builder setTimestamp(long value) {
-        bitField0_ |= 0x00000001;
-        timestamp_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required int64 timestamp = 1;</code>
-       */
-      public Builder clearTimestamp() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        timestamp_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // optional string partition = 2;
-      private java.lang.Object partition_ = "";
-      /**
-       * <code>optional string partition = 2;</code>
-       */
-      public boolean hasPartition() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional string partition = 2;</code>
-       */
-      public java.lang.String getPartition() {
-        java.lang.Object ref = partition_;
+      public java.lang.String getPath() {
+        java.lang.Object ref = path_;
         if (!(ref instanceof java.lang.String)) {
           java.lang.String s = ((com.google.protobuf.ByteString) ref)
               .toStringUtf8();
-          partition_ = s;
+          path_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>optional string partition = 2;</code>
+       * <code>required string path = 1;</code>
        */
       public com.google.protobuf.ByteString
-          getPartitionBytes() {
-        java.lang.Object ref = partition_;
+          getPathBytes() {
+        java.lang.Object ref = path_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          partition_ = b;
+          path_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string partition = 2;</code>
+       * <code>required string path = 1;</code>
        */
-      public Builder setPartition(
+      public Builder setPath(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
-        partition_ = value;
+  bitField0_ |= 0x00000001;
+        path_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string partition = 2;</code>
+       * <code>required string path = 1;</code>
        */
-      public Builder clearPartition() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        partition_ = getDefaultInstance().getPartition();
+      public Builder clearPath() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        path_ = getDefaultInstance().getPath();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string partition = 2;</code>
+       * <code>required string path = 1;</code>
        */
-      public Builder setPartitionBytes(
+      public Builder setPathBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
-        partition_ = value;
+  bitField0_ |= 0x00000001;
+        path_ = value;
         onChanged();
         return this;
       }
 
-      // required string data = 3;
+      // required string data = 2;
       private java.lang.Object data_ = "";
       /**
-       * <code>required string data = 3;</code>
+       * <code>required string data = 2;</code>
        */
       public boolean hasData() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>required string data = 3;</code>
+       * <code>required string data = 2;</code>
        */
       public java.lang.String getData() {
         java.lang.Object ref = data_;
@@ -670,7 +599,7 @@ public final class S3ConsumerProtos {
         }
       }
       /**
-       * <code>required string data = 3;</code>
+       * <code>required string data = 2;</code>
        */
       public com.google.protobuf.ByteString
           getDataBytes() {
@@ -686,36 +615,36 @@ public final class S3ConsumerProtos {
         }
       }
       /**
-       * <code>required string data = 3;</code>
+       * <code>required string data = 2;</code>
        */
       public Builder setData(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  bitField0_ |= 0x00000002;
         data_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required string data = 3;</code>
+       * <code>required string data = 2;</code>
        */
       public Builder clearData() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         data_ = getDefaultInstance().getData();
         onChanged();
         return this;
       }
       /**
-       * <code>required string data = 3;</code>
+       * <code>required string data = 2;</code>
        */
       public Builder setDataBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  bitField0_ |= 0x00000002;
         data_ = value;
         onChanged();
         return this;
@@ -747,8 +676,8 @@ public final class S3ConsumerProtos {
   static {
     java.lang.String[] descriptorData = {
       "\n\026S3ConsumerProtos.proto\022\021kafka.s3.consu" +
-      "mer\"=\n\007Message\022\021\n\ttimestamp\030\001 \002(\003\022\021\n\tpar" +
-      "tition\030\002 \001(\t\022\014\n\004data\030\003 \002(\t"
+      "mer\"%\n\007Message\022\014\n\004path\030\001 \002(\t\022\014\n\004data\030\002 \002" +
+      "(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -760,7 +689,7 @@ public final class S3ConsumerProtos {
           internal_static_kafka_s3_consumer_Message_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_kafka_s3_consumer_Message_descriptor,
-              new java.lang.String[] { "Timestamp", "Partition", "Data", });
+              new java.lang.String[] { "Path", "Data", });
           return null;
         }
       };

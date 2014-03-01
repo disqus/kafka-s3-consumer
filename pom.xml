@@ -146,4 +146,17 @@
 			</plugin>
 		</plugins>
 	</build>
+
+    <reporting>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <configuration>
+            <format>txt</format>
+            <linkXRef>false</linkXRef>
+          </configuration>
+        </plugin>
+      </plugins>
+  </reporting>
 </project>

@@ -9,6 +9,9 @@ clean:
 	rm -rf *.deb
 	mvn clean
 
+pmd:
+	rm -f target/pmd.txt && mvn pmd:pmd && cat target/pmd.txt
+
 protobuf:
 	protoc -I=src/proto/ --java_out=src/main/java/ src/proto/S3ConsumerProtos.proto
 

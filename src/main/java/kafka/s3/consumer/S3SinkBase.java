@@ -23,7 +23,6 @@ public class S3SinkBase {
 	private UploadObserver obs;
 	protected int partition;
 	protected String topic;
-	protected String prefix;
 	PropertyConfiguration conf;
 
 	protected Map<String, Integer> topicSizes;
@@ -35,7 +34,6 @@ public class S3SinkBase {
 		this.partition = partition;
 		this.conf = conf;
 		this.topic = topic;
-    this.prefix = conf.getString(conf.PROP_KAFKA_TOPIC_PREFIX);
 
 		bucket = conf.getS3Bucket();
 		awsClient = new AmazonS3Client(new BasicAWSCredentials(

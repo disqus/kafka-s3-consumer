@@ -3,46 +3,36 @@ package kafka.s3.consumer;
 import java.util.Date;
 
 public class PartitionKey {
-    private Date date;
-    private String extraPath;
+    private String path;
 
-    public PartitionKey (Date date, String extraPath) {
-        setDate(date);
-        setExtraPath(extraPath);
+    public PartitionKey (String path) {
+        setPath(path);
     }
 
-    public Date getDate() {
-        return date;
+    public String getPath() {
+        return path;
     }
 
-    public String getExtraPath() {
-        return extraPath;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public void setExtraPath(String extraPath) {
-        if (extraPath.startsWith("/")) {
-            extraPath = extraPath.substring(1);
+    public void setPath(String path) {
+        if (path.startsWith("/")) {
+            path = path.substring(1);
         }
 
-        if (extraPath.endsWith("/")) {
-            extraPath = extraPath.substring(0, extraPath.length() - 1);
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
         }
 
-        this.extraPath = extraPath;
+        this.path = path;
     }
 
     public String toString() {
-        return "[date=" + date + " extraPath=" + extraPath + "]";
+        return "[path=" + path + "]";
     }
 
     public boolean equals(Object other) {
         if (this == other) return true;
 
-        if (other == null || (this.getClass() != other.getClass())){
+        if (other == null || (this.getClass() != other.getClass())) {
             return false;
         }
 
@@ -50,7 +40,7 @@ public class PartitionKey {
     }
 
     public int hashCode() {
-        return String.format("%s %s", date, extraPath).hashCode();
+        return this.toString().hashCode();
     }
 
     public int compareTo(PartitionKey p) {

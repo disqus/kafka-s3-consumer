@@ -30,7 +30,6 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 	private PartitionKey partitionKey;
   private Long timestamp;
 	private Integer emptyCommits;
-	private DateFormat dateFormat;
 
 	GZIPOutputStream goutStream;
 
@@ -54,8 +53,6 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
     endOffset = 0L;
     bytesWritten = 0;
 		emptyCommits = 0;
-
-		dateFormat = new SimpleDateFormat(conf.getS3TimePartitionFormat());
 
 		if (!topicSizes.containsKey(topic)) {
 			logger.warn("No topic specific size found for topic: " + topic);
@@ -81,32 +78,14 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 	}
 
 
-	// TODO: fix this.
-	private String getTopicName() {
-		if (prefix != null) {
-			return topic.substring(prefix.length());
-		} else {
-			return topic;
-		}
-	}
-
-	private String getTimePartition() {
-		return dateFormat.format(partitionKey.getDate());
-	}
-
 	private String getKey() {
-		String path = String.format("%s/category=%s/%s", conf.getS3Prefix(),
-				getTopicName(), getTimePartition());
-
-		String extraPartition = partitionKey.getExtraPath();
-		if (!extraPartition.isEmpty()) {
-			extraPartition += "/";
-		}
+		String path = String.format("%s/%s", conf.getS3Prefix(), partitionKey.getPath());
 
 		String filename = String.format("%d:%d:%d:%s.gz", partition,
 				startOffset, endOffset, UUID.randomUUID());
 
-		String key = path + "/" + extraPartition + filename;
+		String key = path + "/" + filename;
+		// XXX: for dev
 		System.out.println("key: " + key);
 
 		return key;
@@ -131,7 +110,7 @@ class S3JsonFileSink extends S3SinkBase implements Sink {
 				// TODO: This isn't doing what is expected... doesn't really matter
 				// but should get rid of it if it doesn't work.
         tmpFile = File.createTempFile(
-            "%s_%s_%s".format(getTopicName(), getTimePartition(), partitionKey.getExtraPath().replace('/', '_')),
+            "%s_%s".format(topic, partitionKey.getPath().replace('/', '_')),
             null);
         if (goutStream != null) {
           goutStream.finish();

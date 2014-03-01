@@ -35,9 +35,7 @@ class MultiS3JsonFileSink implements Sink, Observer {
 	}
 
 	public long append(S3ConsumerProtos.Message message) throws IOException {
-		Date messagePartitionDate = DateUtils.truncate(new Date(message.getTimestamp() * 1000), Calendar.HOUR);
-
-		PartitionKey partKey = new PartitionKey(messagePartitionDate, message.getPartition());
+		PartitionKey partKey = new PartitionKey(message.getPath());
 
 		S3JsonFileSink sink = fileSinkPartitions.get(partKey);
 

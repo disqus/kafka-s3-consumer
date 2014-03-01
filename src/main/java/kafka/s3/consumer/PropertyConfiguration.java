@@ -101,10 +101,6 @@ public class PropertyConfiguration implements Configuration {
 		return getConfigMap(PROP_S3_TOPIC_SIZES);
 	}
 
-  protected String getS3TimePartitionFormat() {
-    return config.getString(PROP_S3_TIME_PARTITION_FORMAT, DEFAULT_S3_TIME_PARTITION_FORMAT);
-  }
-
 }
 
 // vim: noet:ts=2:sw=2
