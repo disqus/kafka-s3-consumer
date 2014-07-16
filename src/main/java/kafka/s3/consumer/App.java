@@ -83,7 +83,6 @@ public class App {
 		@SuppressWarnings("unused")
 		ScheduledFuture<?> statsScheduler = scheduler.scheduleWithFixedDelay(
 				doPoolStatusCheck(workers), 0, 30, SECONDS);
-
 	}
 
 	private static class ArchivingWorker implements Runnable, Observer {
@@ -92,7 +91,7 @@ public class App {
 		private final int partition;
 		private PropertyConfiguration masterConfig;
 
-		private final ConsumerConnector consumer;
+		private ConsumerConnector consumer;
 		private long messageCount = 0;
 		private long totalMessageSize = 0;
 		Map<String, List<KafkaStream<Message>>> consumerMap;
@@ -102,9 +101,31 @@ public class App {
 			this.topic = topic;
 			this.partition = partition;
 			this.masterConfig = masterConfig;
-			consumer = kafka.consumer.Consumer
-					.createJavaConsumerConnector(createConsumerConfig(topic,
-							masterConfig));
+
+			boolean connected = false;
+
+			for (int retryCount = 1; retryCount <= 3; retryCount++) {
+				try {
+					consumer = kafka.consumer.Consumer
+							.createJavaConsumerConnector(createConsumerConfig(topic,
+									masterConfig));
+
+					connected = true;
+					break;
+				} catch (Exception e) {
+					logger.warn("Could not create Kafka consumer. Retrying in 3s. (retry #{})", retryCount, e);
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException ie) {
+						logger.warn("InterruptedException caught.", ie);
+					}
+				}
+			}
+
+			if (!connected) {
+				logger.error("Could not connnect to Kafka after 3 retries.  Exiting.");
+				System.exit(1);
+			}
 		}
 
 		private static ConsumerConfig createConsumerConfig(String topic, PropertyConfiguration conf) {
@@ -189,11 +210,12 @@ public class App {
 
         }
 			} catch (Exception e) {
-
-				logger.warn(
-						"Critical error in Archiving worker for topic {}. Relaunching thread.",
-						topic, e);
-				pool.execute(new ArchivingWorker(topic, partition, masterConfig, pool));
+				// XXX: Ideally we could respawn this thread to try to recover,
+				// however a bug in Kafka (KAFKA-919) means we could potentially lose
+				// data by doing this because the rebalancing code will cause the
+				// offsets to get committed without any regard to `autocommit.enable`.
+				logger.warn("Critical error in Archiving worker for topic {}. Exiting.", topic, e);
+				System.exit(1);
 			}
 		}
 
