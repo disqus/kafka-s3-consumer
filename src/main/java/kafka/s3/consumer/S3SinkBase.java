@@ -81,7 +81,7 @@ public class S3SinkBase {
 	}
 
   protected void commitChunk(File chunk, long startOffset, long endOffset, Date date) {
-    String key = String.format("%s:%s:%s:%s.gz", getKeyPrefix(date),
+    String key = String.format("%s-%s-%s-%s.gz", getKeyPrefix(date),
         startOffset, endOffset, UUID.randomUUID());
     commitChunk(chunk, key);
   }
